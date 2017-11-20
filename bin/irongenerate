@@ -132,7 +132,7 @@ function createApplication(app_name, path) {
   }
 
   // CSS Engine support
-  switch (program.css) {
+  switch (program.css || 'scss') {
     case 'plain':
       copy_template('css/style.css',  `${path}/public/stylesheets/style.css`);
       expressCss = '';
@@ -144,19 +144,26 @@ function createApplication(app_name, path) {
       break;
     case 'sass':
       copy_template('css/style.sass', `${path}/public/stylesheets/style.sass`);
-      expressCss = `
-        app.use(require('node-sass-middleware')({
-          src: path.join(__dirname, 'public'),
-          dest: path.join(__dirname, 'public'),
-          indentedSyntax: true,
-          sourceMap: true
-        }));`;
       pkg.dependencies['node-sass-middleware'] = '0.11.0';
+      expressCss = `
+app.use(require('node-sass-middleware')({
+  src:  path.join(__dirname, 'public'),
+  dest: path.join(__dirname, 'public'),
+  indentedSyntax: true,
+  sourceMap: true
+}));
+      `;
       break;
-    default:
+    case 'scss':
       copy_template('css/style.scss', `${path}/public/stylesheets/style.scss`);
-      pkg.dependencies['node-compass'] = '0.2.4';
-      expressCss = "app.use(require('node-compass')({mode: 'expanded'}));";
+      pkg.dependencies['node-sass-middleware'] = '0.11.0';
+      expressCss = `
+app.use(require('node-sass-middleware')({
+  src:  path.join(__dirname, 'public'),
+  dest: path.join(__dirname, 'public'),
+  sourceMap: true
+}));
+      `;
   }
 
   app = app.replace('{expressCss}', expressCss);
@@ -225,7 +232,6 @@ function exit(code) {
 function main() {
   var destinationPath = program.args.shift() || '.';
   var appName = createAppName(path.resolve(destinationPath)) || 'hello-world'
-
 
   // Generate application
   if (fs.existsSync(destinationPath)) {
