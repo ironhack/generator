@@ -1,9 +1,40 @@
+![Ironhack logo](https://i.imgur.com/1QgrNNw.png)
+
+# [Ironhack](https://www.ironhack.com) [Express](https://www.npmjs.com/package/express) application generator.
+
+![NodeJS Logo](https://user-images.githubusercontent.com/970858/33016149-421633aa-cde5-11e7-9c09-5d5d670964ff.png)
+![MongoDB Logo](https://user-images.githubusercontent.com/970858/33016120-2435a6d6-cde5-11e7-874d-ef8b18e97472.png)
 [![Express Logo](https://i.cloudup.com/zfY6lL7eFa-3000x3000.png)](http://expressjs.com/)
+![Mongoose Logo](https://user-images.githubusercontent.com/970858/33016063-f66b535e-cde4-11e7-8088-5df48a048d46.png)
 
-[Ironhack](https://www.ironhack.com)-flavored [Express](https://www.npmjs.com/package/express) application generator.
+![HandleBars Logo](https://user-images.githubusercontent.com/970858/33016171-58b9cc0c-cde5-11e7-9252-d3a8c5d349ab.png)
 
+## Introduction
+
+`iron-generator` is Ironhack's NPM package that allows students to quickly create express projects. The `Iron-generator` is strongly opinionated:
+
+- Follows industry best practices
+- Predefined directory structure:
+    - `public`: Public Assets folder (css, js, images)
+    - `models`: Mongoose Schemas and models
+    - `routes`: Project routes
+    - `views`: Project views and layouts
+- **Views Template**: [Handlebars](http://handlebarsjs.com/)
+- **CSS Engine**: [SCSS](http://sass-lang.com/) - [Node-sass-middleware]()
+- **ORM**: Mongoose
+- Comes prepopulated with popular, useful Express middlewares
+  - **Logger**: morgan
+  - **Favicon**: serve-favicon
+  - **HTTP POST Params**: body-parser
+  - **Cookies**: cookie-parser
+- **Error handling**: 404 (Not found), 500 (Internal Server Error)
+- Creates project `.gitignore` - *removes `node_modules`, etc*
+- **Environment variables** loaded from `.env` configuration file
+- **Server monitoring**: nodemon
 
 ## Installation
+
+Install `iron-generator` as a global NPM package, so you can run it from anywhere in your computer:
 
 ```sh
 $ npm install -g iron-generator
@@ -16,11 +47,32 @@ The quickest way to get started with express is to utilize the executable `irong
 Create the app:
 
 ```bash
-$ irongenerate --view=ejs --database=mongoose --git  awesome-project/
+$ irongenerate awesome-project/
 $ cd awesome-project/
 ```
 
-Install dependencies:
+This will generate the following directory structure:
+
+```
+awesome-project/
+├── app.js
+├── package.json
+├── models
+├── routes
+│   └── index.js
+├── views
+│    ├── error.hbs
+│    ├── index.hbs
+│    └── layout.hbs
+├── public
+│   ├── images
+│   ├── javascripts
+│   │   └── script.js
+│   └── stylesheets
+│       └── styles.sass
+```
+
+Install all dependencies described in `package.json`:
 
 ```bash
 $ npm install
@@ -36,29 +88,11 @@ $ npm start
 
 This generator can also be further configured with the following command line flags.
 
-    -h, --help              output usage information
-        --version           output the version number
-    -e, --ejs               add ejs engine support
-        --hbs               add handlebars engine support
-        --pug               add pug engine support
-    -H, --hogan             add hogan.js engine support
-    -v, --view <engine>     add view <engine> support (ejs|hbs|hjs|jade|pug|twig|vash) (defaults to jade)
-    -c, --css <engine>      add stylesheet <engine> support (less|stylus|compass|sass) (defaults to plain css)
-    -d, --database <engine> add <engine> database support (mongoose) (defaults to none)
-        --git               add .gitignore
-    -f, --force             force on non-empty directory
+    -h, --help           output usage information
+        --version        output the version number
+    -c, --css <engine>   add stylesheet <engine> support (plain|less|sass|scss) (defaults to scss)
+    -f, --force          force on non-empty directory
 
 ## License
 
 [MIT](LICENSE)
-
-[npm-image]: https://img.shields.io/npm/v/express-generator.svg
-[npm-url]: https://npmjs.org/package/express-generator
-[travis-image]: https://img.shields.io/travis/expressjs/generator/master.svg?label=linux
-[travis-url]: https://travis-ci.org/expressjs/generator
-[appveyor-image]: https://img.shields.io/appveyor/ci/dougwilson/generator/master.svg?label=windows
-[appveyor-url]: https://ci.appveyor.com/project/dougwilson/generator
-[downloads-image]: https://img.shields.io/npm/dm/express-generator.svg
-[downloads-url]: https://npmjs.org/package/express-generator
-[gratipay-image]: https://img.shields.io/gratipay/dougwilson.svg
-[gratipay-url]: https://gratipay.com/dougwilson/

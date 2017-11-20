@@ -1,16 +1,21 @@
-const express      = require('express');
-const path         = require('path');
-const favicon      = require('serve-favicon');
-const logger       = require('morgan');
+require('dotenv').config();
+
+const bodyParser   = require('body-parser');
 const cookieParser = require('cookie-parser');
-const bodyParser   = require('body-parser');{viewrequire}{dbrequire}
+const express      = require('express');
+const favicon      = require('serve-favicon');
+const hbs          = require('hbs');
+const mongoose     = require('mongoose');
+const logger       = require('morgan');
+const path         = require('path');
 
 {dbconnect}
+
 const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', '{views}');
+app.set('view engine', 'hbs');
 
 // default value for title local
 app.locals.title = 'Express - Generated with IronGenerator';
@@ -37,11 +42,20 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.locals.error = process.env.ENV === 'development' ? err : {};
 
   // render the error page
   res.status(err.status || 500);
   res.render('error');
 });
 
-module.exports = app;
+// Start Server
+let server = http.createServer(app);
+
+server.on('error', function (error) {
+  console.log(`Server Error: ${error}`)
+});
+
+server.listen(process.env.PORT, () => {
+  console.log(`Server Started on http://localhost:${process.env.PORT}`)
+});

@@ -11,12 +11,13 @@
     "Jonathan Ong <me@jongleberry.com>",
     "Roman Shtylman <shtylman+expressjs@gmail.com>",
     "Josh Alexy <jalexy12@gmail.com>",
-    "Nizar Khalife <khalifenizar@gmail.com>"
+    "Nizar Khalife <khalifenizar@gmail.com>",
+    "Fer Martin <fer@ironhack.com",
+    "Victor Arza <papu@ironhack.com"
   ],
   "keywords": [
     "express",
     "framework",
-    "sinatra",
     "web",
     "rest",
     "restful",
@@ -24,10 +25,10 @@
     "app",
     "api"
   ],
-  "repository": "jalexy12/generator",
+  "repository": "ironhack/generator",
   "license": "MIT",
   "dependencies": {
-    "commander": "2.9.0",
+    "commander": "2.11.0",
     "mkdirp": "0.5.1",
     "sorted-object": "2.0.1"
   },
