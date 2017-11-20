@@ -117,10 +117,14 @@ function createApplication(app_name, path) {
     console.log('    $ npm start');
     console.log();
   }
+  let app = loadTemplate('js/app.js');
 
   mkdir(path, function(){
     mkdir(`${path}/public`);
-    write(`${path}/public/images`, loadTemplate(`${path}/public/images/favicon.ico`));
+    mkdir(`${path}/public/images`);
+
+    let favicon = loadTemplate(`images/favicon.ico`);
+    write(`${path}/public/images/favicon.ico`, favicon);
 
     mkdir(`${path}/public/javascripts`);
     write(`${path}/public/javascripts/script.js`, loadTemplate('javascripts/script.js'));
@@ -182,7 +186,7 @@ function createApplication(app_name, path) {
         name: app_name
       , version: '0.0.0'
       , private: true
-      , scripts: { start: 'nodemon app.js' }
+      , scripts: { start: 'nodemon ./bin/www' }
       , dependencies: {
           'body-parser':   '~1.18.2',
           'cookie-parser': '~1.4.3',
@@ -207,7 +211,11 @@ function createApplication(app_name, path) {
     pkg.dependencies = sortedObject(pkg.dependencies);
 
     write(`${path}/package.json`, JSON.stringify(pkg, null, 2) + '\n');
-    write(`${path}/app.js`,       loadTemplate('js/app.js'));
+    write(`${path}/app.js`,       app);
+
+    mkdir(`${path}/bin`);
+    write(`${path}/www`, loadTemplate('www'));
+
     write(`${path}/.env`,         loadTemplate('.env'));
     write(`${path}/.gitignore`,   fs.readFileSync(__dirname + '/../templates/js/gitignore', 'utf-8'));
 
