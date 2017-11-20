@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
-var fs           = require('fs');
-var mkdirp       = require('mkdirp');
-var os           = require('os');
-var path         = require('path');
-var program      = require('commander');
-var readline     = require('readline');
-var sortedObject = require('sorted-object');
-var util         = require('util');
+const fs           = require('fs-extra')
+const os           = require('os');
+const path         = require('path');
+const program      = require('commander');
+const readline     = require('readline');
+const sortedObject = require('sorted-object');
+const util         = require('util');
 
 var _exit = process.exit;
 var eol = os.EOL;
@@ -45,7 +44,7 @@ before(program, 'unknownOption', function () {
 program
   .version(version, '    --version')
   .usage('[options] [dir]')
-  .option('-c, --css <engine>', 'add stylesheet <engine> support (less|stylus|compass|sass) (defaults to plain css)')
+  .option('-c, --css <engine>', 'add stylesheet <engine> support (plain|less|scss|sass) (defaults to scss)')
   .option('-f, --force', 'force on non-empty directory')
   .parse(process.argv);
 
@@ -103,129 +102,98 @@ function confirm(msg, callback) {
  */
 
 function createApplication(app_name, path) {
-  var wait = 5;
 
-  console.log();
-  function complete() {
-    if (--wait) return;
-
-    console.log();
-    console.log('   Install dependencies:');
-    console.log('   $ cd %s && npm install', path);
-    console.log();
-    console.log('   Start your app:');
-    console.log('    $ npm start');
-    console.log();
-  }
   let app = loadTemplate('js/app.js');
 
-  mkdir(path, function(){
-    mkdir(`${path}/public`);
-    mkdir(`${path}/public/images`);
+  createDir(`${path}/bin`);
+  createDir(`${path}/models`);
+  createDir(`${path}/public/images`);
+  createDir(`${path}/public/javascripts`);
+  createDir(`${path}/public/stylesheets`);
+  createDir(`${path}/routes`);
+  createDir(`${path}/views`);
 
-    let favicon = loadTemplate(`images/favicon.ico`);
-    write(`${path}/public/images/favicon.ico`, favicon);
-
-    mkdir(`${path}/public/javascripts`);
-    write(`${path}/public/javascripts/script.js`, loadTemplate('javascripts/script.js'));
-
-    mkdir(`${path}/public/stylesheets`, () => {
-      switch (program.css) {
-        case 'plain': write(`${path}/public/stylesheets/style.css`,  loadTemplate('css/style.css'));   break;
-        case 'less':  write(`${path}/public/stylesheets/style.less`, loadTemplate('css/style.less'));  break;
-        case 'sass':  write(`${path}/public/stylesheets/style.sass`, loadTemplate('css/style.sass'));  break;
-        case 'scss':  write(`${path}/public/stylesheets/style.scss`, loadTemplate('css/style.scss'));  break;
-        default:      write(`${path}/public/stylesheets/style.scss`, loadTemplate('css/style.scss')); }
-      complete();
-    });
-
-    mkdir(`${path}/routes`, () => {
-      write(`${path}/routes/index.js`, loadTemplate('js/routes/index.js'));
-      complete();
-    });
-
-    mkdir(`${path}/views`, () => {
-      copy_template('hbs/index.hbs',  `${path}/views/index.hbs`);
-      copy_template('hbs/layout.hbs', `${path}/views/layout.hbs`);
-      copy_template('hbs/error.hbs',  `${path}/views/error.hbs`);
-      complete();
-    });
-
-    mkdir(`${path}/models`);
-
-    // CSS Engine support
-    switch (program.css) {
-      case 'plain':
-        app = app.replace('{css}', '');
-        break;
-      case 'less':
-        app = app.replace('{css}', "app.use(require('less-middleware')(path.join(__dirname, 'public')));");
-        break;
-      case 'scss':
-        app = app.replace('{css}', "app.use(require('node-compass')({mode: 'expanded'}));");
-        break;
-      case 'sass':
-        app = app.replace('{css}', `
-          app.use(require('node-sass-middleware')({
-            src: path.join(__dirname, 'public'),
-            dest: path.join(__dirname, 'public'),
-            indentedSyntax: true,
-            sourceMap: true
-          }));`);
-        break;
-      default:
-        app = app.replace('{css}', "app.use(require('node-compass')({mode: 'expanded'}));");
+  // package.json
+  var pkg = {
+    name: app_name,
+    version: '0.0.0',
+    private: true,
+    scripts: { start: 'nodemon ./bin/www' },
+    dependencies: {
+      'body-parser':   '~1.18.2',
+      'cookie-parser': '~1.4.3',
+      'express':       '~4.16.0',
+      'hbs':           '~4.0.1',
+      'mongoose':      '~4.13.4',
+      'morgan':        '~1.9.0',
+      'serve-favicon': '~2.4.5',
+      'dotenv':        '~4.0.0'
     }
+  }
 
-    // Template support
-    // Database Engine support
-    app = app.replace('{dbconnect}', `mongoose.connect(\'mongodb://localhost/${app_name}\');`);
+  // CSS Engine support
+  switch (program.css) {
+    case 'plain':
+      copy_template('css/style.css',  `${path}/public/stylesheets/style.css`);
+      expressCss = '';
+      break;
+    case 'less':
+      copy_template('css/style.less', `${path}/public/stylesheets/style.less`);
+      expressCss = "app.use(require('less-middleware')(path.join(__dirname, 'public')));";
+      pkg.dependencies['less-middleware'] = '~2.2.1';
+      break;
+    case 'sass':
+      copy_template('css/style.sass', `${path}/public/stylesheets/style.sass`);
+      expressCss = `
+        app.use(require('node-sass-middleware')({
+          src: path.join(__dirname, 'public'),
+          dest: path.join(__dirname, 'public'),
+          indentedSyntax: true,
+          sourceMap: true
+        }));`;
+      pkg.dependencies['node-sass-middleware'] = '0.11.0';
+      break;
+    default:
+      copy_template('css/style.scss', `${path}/public/stylesheets/style.scss`);
+      pkg.dependencies['node-compass'] = '0.2.4';
+      expressCss = "app.use(require('node-compass')({mode: 'expanded'}));";
+  }
 
-    // package.json
-    var pkg = {
-        name: app_name
-      , version: '0.0.0'
-      , private: true
-      , scripts: { start: 'nodemon ./bin/www' }
-      , dependencies: {
-          'body-parser':   '~1.18.2',
-          'cookie-parser': '~1.4.3',
-          'express':       '~4.16.0',
-          'hbs':           '~4.0.1',
-          'mongoose':      '~4.13.4',
-          'morgan':        '~1.9.0',
-          'serve-favicon': '~2.4.5',
-          'dotenv':        '~4.0.0'
-      }
-    }
+  app = app.replace('{expressCss}', expressCss);
+  app = app.replace('{app_name}',   app_name);
 
-    // CSS Engine support
-    switch (program.css) {
-      case 'less':    pkg.dependencies['less-middleware']      = '~2.2.1'; break;
-      case 'compass': pkg.dependencies['node-compass']         = '0.2.4';  break;
-      case 'sass':    pkg.dependencies['node-sass-middleware'] = '0.11.0'; break;
-      default:        pkg.dependencies['node-compass']         = '0.2.4';
-    }
+  // sort dependencies like npm(1)
+  pkg.dependencies = sortedObject(pkg.dependencies);
 
-    // sort dependencies like npm(1)
-    pkg.dependencies = sortedObject(pkg.dependencies);
+  copy_template('.env',                  `${path}/.env`);
+  copy_template('js/gitignore',          `${path}/.gitignore`);
+  copy_template('js/www',                `${path}/bin/www`);
+  copy_template('js/routes/index.js',    `${path}/routes/index.js`)
+  copy_template('hbs/index.hbs',         `${path}/views/index.hbs`);
+  copy_template('hbs/layout.hbs',        `${path}/views/layout.hbs`);
+  copy_template('hbs/error.hbs',         `${path}/views/error.hbs`);
+  copy_template('images/favicon.ico',    `${path}/public/images/favicon.ico`);
+  copy_template('javascripts/script.js', `${path}/public/javascripts/script.js`);
 
-    write(`${path}/package.json`, JSON.stringify(pkg, null, 2) + '\n');
-    write(`${path}/app.js`,       app);
+  createFile(`${path}/package.json`, JSON.stringify(pkg, null, 2) + '\n');
+  createFile(`${path}/app.js`,       app);
 
-    mkdir(`${path}/bin`);
-    write(`${path}/www`, loadTemplate('www'));
-
-    write(`${path}/.env`,         loadTemplate('.env'));
-    write(`${path}/.gitignore`,   fs.readFileSync(__dirname + '/../templates/js/gitignore', 'utf-8'));
-
-    complete();
-  });
+  console.log();
+  console.log('   Install dependencies:');
+  console.log('   $ cd %s && npm install', path);
+  console.log();
+  console.log('   Start your app:');
+  console.log('    $ npm start');
+  console.log();
 }
 
 function copy_template(from, to) {
   from = path.join(__dirname, '..', 'templates', from);
-  write(to, fs.readFileSync(from, 'utf-8'));
+  createFile(to, fs.readFileSync(from, 'utf-8'));
+}
+
+function loadTemplate(name) {
+  return fs.readFileSync(path.join(__dirname, '..', 'templates', name), 'utf-8');
 }
 
 // Create an app name from a directory path, fitting npm naming requirements.
@@ -234,14 +202,6 @@ function createAppName(pathName) {
     .replace(/[^A-Za-z0-9\.()!~*'-]+/g, '-')
     .replace(/^[-_\.]+|-+$/g, '')
     .toLowerCase()
-}
-
-// Check if the given directory `path` is empty.
-function emptyDirectory(path, fn) {
-  fs.readdir(path, function(err, files){
-    if (err && 'ENOENT' != err.code) throw err;
-    fn(!files || !files.length);
-  });
 }
 
 // Graceful exit for async STDIO
@@ -262,40 +222,23 @@ function exit(code) {
   done();
 }
 
-function loadTemplate(name) {
-  return fs.readFileSync(path.join(__dirname, '..', 'templates', name), 'utf-8');
-}
-
 function main() {
   var destinationPath = program.args.shift() || '.';
   var appName = createAppName(path.resolve(destinationPath)) || 'hello-world'
 
-  // View engine
-  program.view = 'hbs'
 
   // Generate application
-  emptyDirectory(destinationPath, function (empty) {
-    if (empty || program.force) {
+  if (fs.existsSync(destinationPath)) {
+    if (program.force) {
       createApplication(appName, destinationPath);
     } else {
-      confirm('destination is not empty, continue? [y/N] ', function (ok) {
-        if (ok) {
-          process.stdin.destroy();
-          createApplication(appName, destinationPath);
-        } else {
-          console.error('aborting');
-          exit(1);
-        }
+      confirm('destination is not empty, continue? [y/N] ', ok => {
+        if (ok) { createApplication(appName, destinationPath); }
+        else    { console.error('aborting'); exit(1); }
       });
     }
-  });
-}
-
-// Generate a callback function for commander to warn about renamed option.
-function renamedOption(originalName, newName) {
-  return function (val) {
-    warning(util.format("option `%s' has been renamed to `%s'", originalName, newName))
-    return val
+  } else {
+    createApplication(appName, destinationPath);
   }
 }
 
@@ -308,15 +251,20 @@ function warning(message) {
   console.error()
 }
 
-function write(path, str, mode) {
-  fs.writeFileSync(path, str, { mode: mode || 0666 });
-  console.log('   \x1b[36mcreate\x1b[0m : ' + path);
+function createFile(path, str) {
+  try {
+    fs.writeFileSync(path, str, { mode: 0o666 });
+    console.log('   \x1b[36mcreate\x1b[0m file : ' + path);
+  } catch(err) {
+    console.error(err);
+  }
 }
 
-function mkdir(path, fn) {
-  mkdirp(path, 0755, function(err){
-    if (err) throw err;
-    console.log('   \033[36mcreate\033[0m : ' + path);
-    fn && fn();
-  });
+function createDir(path) {
+  try {
+    fs.mkdirsSync(path);
+    console.log('   \033[36mcreate\033[0m dir  : ' + path);
+  } catch(err) {
+    console.error(err);
+  }
 }
