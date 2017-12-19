@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 
+const chalk        = require('chalk');
 const fs           = require('fs-extra')
 const os           = require('os');
 const path         = require('path');
+const nodePath     = path;
+const mkdirp       = require('mkdirp');
 const program      = require('commander');
 const readline     = require('readline');
 const sortedObject = require('sorted-object');
@@ -45,6 +48,7 @@ program
   .version(version, '    --version')
   .usage('[options] [dir]')
   .option('-c, --css <engine>', 'add stylesheet <engine> support (plain|less|scss|sass) (defaults to scss)')
+  .option('    --auth', 'adds authentication support with passport.js (defaults to false)')
   .option('-f, --force', 'force on non-empty directory')
   .parse(process.argv);
 
@@ -118,7 +122,10 @@ function createApplication(app_name, path) {
     name: app_name,
     version: '0.0.0',
     private: true,
-    scripts: { start: 'nodemon ./bin/www' },
+    scripts: {
+      start: 'nodemon ./bin/www',
+      dev: `DEBUG=${app_name}:* nodemon ./bin/www`
+    },
     dependencies: {
       'body-parser':   '~1.18.2',
       'cookie-parser': '~1.4.3',
@@ -128,7 +135,70 @@ function createApplication(app_name, path) {
       'morgan':        '~1.9.0',
       'serve-favicon': '~2.4.5',
       'dotenv':        '~4.0.0'
+    },
+    devDependencies: {
+      'nodemon':'^1.12.1'
     }
+  }
+
+  // Add Authentication Dependencies
+  if (program.auth) {
+    pkg.dependencies['bcrypt'] = "^1.0.3";
+    pkg.dependencies['connect-ensure-login'] = "^0.1.1";
+    pkg.dependencies['connect-flash'] = "^0.1.1";
+    pkg.dependencies['connect-mongo'] = "^1.3.2";
+    pkg.dependencies['express-session'] = "^1.15.6";
+    pkg.dependencies['passport-local'] = "^1.0.0";
+    pkg.dependencies['passport'] = "^0.4.0";
+
+    app = app.replace('{auth_requires}', `
+const session    = require("express-session");
+const MongoStore = require('connect-mongo')(session);
+const flash      = require("connect-flash");
+    `);
+
+    // Add auth to main app.js script
+    app = app.replace('{auth}', `
+// Enable authentication using session + passport
+app.use(session({
+  secret: 'irongenerator',
+  resave: true,
+  saveUninitialized: true,
+  store: new MongoStore( { mongooseConnection: mongoose.connection })
+}))
+app.use(flash());
+require('./passport')(app);
+    `);
+
+    app = app.replace('{auth_routes}', `
+const authRoutes = require('./routes/auth');
+app.use('/auth', authRoutes);
+      `);
+
+    // Copy entire passport config with LocalStrategy
+    const prefixDir = 'passport';
+    mkdirp.sync(path + '/' + prefixDir);
+    const authFiles = [
+      {from:'index.js',         to:`${prefixDir}/index.js`},
+      {from:'localStrategy.js', to:`${prefixDir}/localStrategy.js`},
+      {from:'serializers.js',   to:`${prefixDir}/serializers.js`},
+      {from:'models/User.js',   to:`models/User.js`},
+      {from:'authRouter.js',    to:`routes/auth.js`}
+    ];
+
+    authFiles.push({from:'views/ejs/login.ejs', to:`views/auth/login.ejs`});
+    authFiles.push({from:'views/ejs/signup.ejs', to:`views/auth/signup.ejs`});
+
+    authFiles.map(f => ({
+      file: f.to,
+      template: loadTemplate(`passport/${f.from}`)
+    }))
+    .map(src => {
+      let outPath = path + '/' + src.file;
+      // Create dir if needed and write file
+      mkdirp.sync(nodePath.dirname(outPath));
+      write(outPath, src.template);
+    });
   }
 
   // CSS Engine support
@@ -190,7 +260,8 @@ app.use(require('node-sass-middleware')({
   console.log('   $ cd %s && npm install', path);
   console.log();
   console.log('   Start your app:');
-  console.log('    $ npm start');
+  console.log('   $ %s SET DEBUG=%s:* & npm run dev', prompt, app_name);
+  console.log('   $ npm start');
   console.log();
 }
 
