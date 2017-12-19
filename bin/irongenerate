@@ -5,9 +5,11 @@ var mkdirp = require('mkdirp');
 var os = require('os');
 var fs = require('fs');
 var path = require('path');
+var nodePath = path;
 var readline = require('readline');
 var sortedObject = require('sorted-object');
 var util = require('util');
+var chalk = require('chalk');
 
 var _exit = process.exit;
 var eol = os.EOL;
@@ -52,6 +54,7 @@ program
   .option('-v, --view <engine>', 'add view <engine> support (ejs|hbs|hjs|jade|pug|twig|vash) (defaults to jade)')
   .option('-c, --css <engine>', 'add stylesheet <engine> support (less|stylus|compass|sass) (defaults to plain css)')
   .option('-d, --database <engine>', 'add <engine> database support (mongoose) (defaults to none)')
+  .option('    --auth', 'adds authentication support with passport.js (defaults to false)')
   .option('    --git', 'add .gitignore')
   .option('-f, --force', 'force on non-empty directory')
   .parse(process.argv);
@@ -112,7 +115,6 @@ function confirm(msg, callback) {
 function createApplication(app_name, path) {
   var wait = 5;
 
-  console.log();
   function complete() {
     if (--wait) return;
     var prompt = launchedFromCmd() ? '>' : '$';
@@ -121,12 +123,13 @@ function createApplication(app_name, path) {
     console.log('   install dependencies:');
     console.log('     %s cd %s && npm install', prompt, path);
     console.log();
-    console.log('   run the app:');
 
+    // run the app
+    console.log('   run the app:');
     if (launchedFromCmd()) {
-      console.log('     %s SET DEBUG=%s:* & npm start', prompt, app_name);
+      console.log('     %s SET DEBUG=%s:* & npm run dev', prompt, app_name);
     } else {
-      console.log('     %s DEBUG=%s:* npm start', prompt, app_name);
+      console.log('     %s DEBUG=%s:* npm run dev', prompt, app_name);
     }
 
     console.log();
@@ -143,6 +146,15 @@ function createApplication(app_name, path) {
   var stylus = loadTemplate('css/style.styl');
   var compass = loadTemplate('css/style.scss');
   var sass = loadTemplate('css/style.sass');
+
+  // If auth is enabled, check mongoose before creating project
+  if (program.auth) {
+    if(program.database != 'mongoose'){
+      console.error(chalk.red(`You should add "--database mongoose" to this command to use --auth flag`));
+      _exit(1);
+      return;
+    }
+  }
 
   mkdir(path, function(){
     mkdir(path + '/public');
@@ -217,6 +229,60 @@ function createApplication(app_name, path) {
       mkdir(path + '/models');
     }
 
+    if (program.auth) {
+      app = app.replace('{auth_requires}', `
+const session = require("express-session");
+const MongoStore = require('connect-mongo')(session);
+const flash = require("connect-flash");
+      `);
+      // Add auth to main app.js script
+      app = app.replace('{auth}', `
+// Enable authentication using session + passport
+app.use(session({
+  secret: 'irongenerator',
+  resave: true,
+  saveUninitialized: true,
+  store: new MongoStore( { mongooseConnection: mongoose.connection })
+}))
+app.use(flash());
+require('./passport')(app);
+      `);
+      app = app.replace('{auth_routes}', `
+const authRoutes = require('./routes/auth');
+app.use('/auth', authRoutes);
+      `);
+
+      // Copy entire passport config with LocalStrategy
+      const prefixDir = 'passport';
+      mkdirp.sync(path + '/' + prefixDir);
+      const authFiles = [
+        {from:'index.js', to:`${prefixDir}/index.js`},
+        {from:'localStrategy.js', to:`${prefixDir}/localStrategy.js`},
+        {from:'serializers.js', to:`${prefixDir}/serializers.js`},
+        {from:'models/User.js', to:`models/User.js`},
+        {from:'authRouter.js', to:`routes/auth.js`}
+      ];
+
+      if(program.view == 'ejs'){
+        authFiles.push({from:'views/ejs/login.ejs', to:`views/auth/login.ejs`});
+        authFiles.push({from:'views/ejs/signup.ejs', to:`views/auth/signup.ejs`});
+      } else {
+        console.log(chalk.yellow(`WARN: Views files are only available when using "--view=ejs" flag`));
+      }
+
+
+      authFiles.map(f => ({
+        file: f.to,
+        template: loadTemplate(`passport/${f.from}`)
+      }))
+      .map(src => {
+        let outPath = path + '/' + src.file;
+        // Create dir if needed and write file
+        mkdirp.sync(nodePath.dirname(outPath));
+        write(outPath, src.template);
+      });
+    }
+
     // CSS Engine support
     switch (program.css) {
       case 'less':
@@ -251,7 +317,12 @@ function createApplication(app_name, path) {
     switch (program.database) {
       case 'mongoose':
         app = app.replace('{dbrequire}', eol + 'const mongoose     = require(\'mongoose\');');
-        app = app.replace('{dbconnect}', eol + 'mongoose.connect(\'mongodb://localhost/' + app_name + '\');' + eol);
+        app = app.replace('{dbconnect}',`
+const dbUrl = "mongodb://localhost/${app_name}";
+mongoose.connect(dbUrl).then(() =>{
+  debug('Connected to mongo database!');
+}).catch(e => debug(e));
+        `);
         break;
       default:
         app = app.replace('{dbrequire}', '');
@@ -259,19 +330,35 @@ function createApplication(app_name, path) {
     }
 
     // package.json
-    var pkg = {
-        name: app_name
-      , version: '0.0.0'
-      , private: true
-      , scripts: { start: 'node ./bin/www' }
-      , dependencies: {
+    let pkg = {
+        name: app_name,
+        version: '1.0.0',
+        private: true,
+        scripts: {
+          start: 'node ./bin/www',
+          dev: `DEBUG=${app_name}:* nodemon ./bin/www`
+        },
+        dependencies: {
           'express': '~4.14.1',
           'body-parser': '~1.16.0',
           'cookie-parser': '~1.4.3',
           'debug': '~2.6.0',
           'morgan': '~1.7.0',
           'serve-favicon': '~2.3.2'
-      }
+        },
+        devDependencies: {
+          'nodemon':'^1.12.1',
+        }
+    }
+
+    if(program.auth){
+      pkg.dependencies['express-session'] = "^1.15.6";
+      pkg.dependencies['passport-local'] = "^1.0.0";
+      pkg.dependencies['passport'] = "^0.4.0";
+      pkg.dependencies['connect-mongo'] = "^1.3.2";
+      pkg.dependencies['bcrypt'] = "^1.0.3";
+      pkg.dependencies['connect-ensure-login'] = "^0.1.1";
+      pkg.dependencies['connect-flash'] = "^0.1.1";
     }
 
     switch (program.view) {

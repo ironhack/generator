@@ -1,10 +1,14 @@
-const express      = require('express');
-const path         = require('path');
-const favicon      = require('serve-favicon');
-const logger       = require('morgan');
+const express = require('express');
+const path = require('path');
+const favicon = require('serve-favicon');
+const logger = require('morgan');
 const cookieParser = require('cookie-parser');
-const bodyParser   = require('body-parser');{viewrequire}{dbrequire}
-
+const bodyParser = require('body-parser');
+const app_name = require('./package.json').name;
+const debug = require('debug')(`${app_name}:${path.basename(__filename).split('.')[0]}`);
+{viewrequire}
+{dbrequire}
+{auth_requires}
 {dbconnect}
 const app = express();
 
@@ -23,8 +27,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());{css}
 app.use(express.static(path.join(__dirname, 'public')));{viewmiddleware}
 
+{auth}
+
 const index = require('./routes/index');
 app.use('/', index);
+{auth_routes}
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
