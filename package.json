@@ -1,7 +1,7 @@
 {
   "name": "iron-generator",
-  "description": "Express' application generator",
-  "version": "4.14.3",
+  "description": "Express' application generator by Ironhack",
+  "version": "5.0.0",
   "author": "TJ Holowaychuk <tj@vision-media.ca>",
   "contributors": [
     "Aaron Heckmann <aaron.heckmann+github@gmail.com>",
@@ -11,27 +11,29 @@
     "Jonathan Ong <me@jongleberry.com>",
     "Roman Shtylman <shtylman+expressjs@gmail.com>",
     "Josh Alexy <jalexy12@gmail.com>",
-    "Nizar Khalife <khalifenizar@gmail.com>"
+    "Nizar Khalife <khalifenizar@gmail.com>",
+    "Fer Martin <fer@ironhack.com",
+    "Victor Arza <papu@ironhack.com"
   ],
   "keywords": [
     "express",
     "framework",
-    "sinatra",
     "web",
     "rest",
     "restful",
     "router",
     "app",
-    "api"
+    "api",
+    "ironhack"
   ],
-  "repository": "jalexy12/generator",
+  "repository": "ironhack/generator",
   "license": "MIT",
   "dependencies": {
-    "commander": "2.9.0",
-    "mkdirp": "0.5.1",
+    "commander": "2.11.0",
+    "fs-extra": "^4.0.2",
     "sorted-object": "2.0.1"
   },
-  "main": "bin/express",
+  "main": "bin/irongenerate",
   "preferGlobal": true,
   "bin": {
     "irongenerate": "./bin/irongenerate"
