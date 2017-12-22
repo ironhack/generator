@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
 const chalk        = require('chalk');
+const exec         = require('child_process').execSync;
 const fs           = require('fs-extra')
+const mkdirp       = require('mkdirp');
 const os           = require('os');
 const path         = require('path');
 const nodePath     = path;
-const mkdirp       = require('mkdirp');
 const program      = require('commander');
 const readline     = require('readline');
 const sortedObject = require('sorted-object');
@@ -261,9 +262,17 @@ app.use(require('node-sass-middleware')({
   createFile(`${path}/package.json`, JSON.stringify(pkg, null, 2) + '\n');
   createFile(`${path}/app.js`,       app);
 
-  console.log();
-  console.log('   Install dependencies:');
-  console.log('   $ cd %s && npm install', path);
+  process.chdir(path);
+
+  console.log('\n > Creating a git repository and commiting all your files\n');
+  exec('git init && git add . && git commit -m"initial commit"', { stdio: 'inherit' });
+
+  console.log('\n > Installing NPM packages. Please wait ⚡️\n');
+  exec('npm install', { stdio: 'inherit' });
+
+  // console.log();
+  // console.log('   Install dependencies:');
+  // console.log('   $ cd %s && npm install', path);
   console.log();
   console.log('   Start your app in development mode:');
   console.log('   $ SET DEBUG=%s:* & npm run dev', app_name);
@@ -271,6 +280,7 @@ app.use(require('node-sass-middleware')({
   console.log('   Start your app:');
   console.log('   $ npm start');
   console.log();
+  console.log('   Happy Coding ❤️\n\n');
 }
 
 function copy_template(from, to) {
