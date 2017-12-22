@@ -176,13 +176,14 @@ app.use('/auth', authRoutes);
       `);
 
     // Copy entire passport config with LocalStrategy
-    copy_template('index.js',             `${path}/passport/index.js`)
-    copy_template('localStrategy.js',     `${path}/passport/localStrategy.js`)
-    copy_template('serializers.js',       `${path}/passport/serializers.js`)
-    copy_template('models/User.js',       `${path}/models/User.js`)
-    copy_template('authRouter.js',        `${path}/routes/auth.js`)
-    copy_template('views/hbs/login.hbs',  `${path}/views/auth/login.hbs`);
-    copy_template('views/hbs/signup.hbs', `${path}/views/auth/signup.hbs`);
+    copy_template('passport/index.js',             `${path}/passport/index.js`)
+    copy_template('passport/localStrategy.js',     `${path}/passport/localStrategy.js`)
+    copy_template('passport/serializers.js',       `${path}/passport/serializers.js`)
+    copy_template('passport/models/User.js',       `${path}/models/User.js`)
+    copy_template('passport/authRouter.js',        `${path}/routes/auth.js`)
+    createDir(`${path}/views/auth`);
+    copy_template('passport/views/hbs/login.hbs',  `${path}/views/auth/login.hbs`);
+    copy_template('passport/views/hbs/signup.hbs', `${path}/views/auth/signup.hbs`);
   }
 
   // CSS Engine support
