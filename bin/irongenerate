@@ -117,6 +117,10 @@ function createApplication(app_name, path) {
   createDir(`${path}/routes`);
   createDir(`${path}/views`);
 
+  // Add debugger configuration for Visual Studio Code
+  createDir(`${path}/.vscode`);
+  copy_template('vscode/launch.json', `${path}/.vscode/launch.json`)
+
   // package.json
   var pkg = {
     name: app_name,
@@ -124,7 +128,7 @@ function createApplication(app_name, path) {
     private: true,
     scripts: {
       start: 'nodemon ./bin/www',
-      dev: `DEBUG=${app_name}:* nodemon ./bin/www`
+      dev: `DEBUG=${app_name}:* nodemon --inspect ./bin/www`
     },
     dependencies: {
       'body-parser':   '~1.18.2',
