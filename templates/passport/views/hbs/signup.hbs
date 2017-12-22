@@ -10,9 +10,9 @@
   <label for="password">Password</label>
   <input id="password" type="password" name="password" placeholder="Your password">
 
-  {{#if (typeof message !== "undefined") }}
+  {{#ifUndefined message }}
     <div class="error-message"><%= message %></div>
-  {{/if}}
+  {{/ifUndefined}}
 
   <br><br>
 

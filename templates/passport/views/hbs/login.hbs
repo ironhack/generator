@@ -9,9 +9,9 @@
     <input id="password" type="password" name="password" placeholder="Your password">
   </div>
 
-  {{#if (typeof message !== "undefined") }}
+  {{#ifUndefined message }}
     <div class="error-message"><%= message %></div>
-  {{/if}}
+  {{/ifUndefined}}
 
   <div>
     <input type="submit" value="Log In">
