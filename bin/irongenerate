@@ -176,29 +176,13 @@ app.use('/auth', authRoutes);
       `);
 
     // Copy entire passport config with LocalStrategy
-    const prefixDir = 'passport';
-    mkdirp.sync(path + '/' + prefixDir);
-    const authFiles = [
-      {from:'index.js',         to:`${prefixDir}/index.js`},
-      {from:'localStrategy.js', to:`${prefixDir}/localStrategy.js`},
-      {from:'serializers.js',   to:`${prefixDir}/serializers.js`},
-      {from:'models/User.js',   to:`models/User.js`},
-      {from:'authRouter.js',    to:`routes/auth.js`}
-    ];
-
-    authFiles.push({from:'views/ejs/login.ejs', to:`views/auth/login.ejs`});
-    authFiles.push({from:'views/ejs/signup.ejs', to:`views/auth/signup.ejs`});
-
-    authFiles.map(f => ({
-      file: f.to,
-      template: loadTemplate(`passport/${f.from}`)
-    }))
-    .map(src => {
-      let outPath = path + '/' + src.file;
-      // Create dir if needed and write file
-      mkdirp.sync(nodePath.dirname(outPath));
-      write(outPath, src.template);
-    });
+    copy_template('index.js',             `${path}/passport/index.js`)
+    copy_template('localStrategy.js',     `${path}/passport/localStrategy.js`)
+    copy_template('serializers.js',       `${path}/passport/serializers.js`)
+    copy_template('models/User.js',       `${path}/models/User.js`)
+    copy_template('authRouter.js',        `${path}/routes/auth.js`)
+    copy_template('views/hbs/login.hbs',  `${path}/views/auth/login.hbs`);
+    copy_template('views/hbs/signup.hbs', `${path}/views/auth/signup.hbs`);
   }
 
   // CSS Engine support
