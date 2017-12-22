@@ -259,8 +259,10 @@ app.use(require('node-sass-middleware')({
   console.log('   Install dependencies:');
   console.log('   $ cd %s && npm install', path);
   console.log();
+  console.log('   Start your app in development mode:');
+  console.log('   $ SET DEBUG=%s:* & npm run dev', app_name);
+  console.log();
   console.log('   Start your app:');
-  console.log('   $ %s SET DEBUG=%s:* & npm run dev', prompt, app_name);
   console.log('   $ npm start');
   console.log();
 }
