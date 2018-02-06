@@ -70,6 +70,10 @@ awesome-project/
 │   │   └── script.js
 │   └── stylesheets
 │       └── styles.sass
+├── .env
+├── .gitignoe
+├── bin
+    ├── www
 ```
 
 Install all dependencies described in `package.json`:
