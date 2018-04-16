@@ -1,19 +1,25 @@
-<form action="/auth/login" method="POST">
-  <div>
-    <label for="username">Username:</label>
-    <input id="username" type="text" name="username" placeholder="JonSnow">
-  </div>
 
-  <div>
-    <label for="password">Password</label>
-    <input id="password" type="password" name="password" placeholder="Your password">
-  </div>
+<h2>Login</h2>
 
-  {{#ifUndefined message }}
-    <div class="error-message"><%= message %></div>
-  {{/ifUndefined}}
+<form action="/auth/login" method="POST" id="form-container">
+  <label for="username">Username</label>
+  <input id="username" type="text" name="username" placeholder="JonSnow">
 
-  <div>
-    <input type="submit" value="Log In">
-  </div>
+  <br><br>
+
+  <label for="password">Password</label>
+  <input id="password" type="password" name="password" placeholder="Your password">
+  <br>
+  {{#if message }}
+    <div class="error-message">{{ message }}</div>
+  {{/if}}
+
+  <br><br>
+
+  <button>Create account</button>
+
+  <p class="account-message">
+    Don't have an account yet?
+    <a href="/auth/login">Signup</a>
+  </p>
 </form>

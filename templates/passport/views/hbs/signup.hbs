@@ -9,10 +9,10 @@
 
   <label for="password">Password</label>
   <input id="password" type="password" name="password" placeholder="Your password">
-
-  {{#ifUndefined message }}
-    <div class="error-message"><%= message %></div>
-  {{/ifUndefined}}
+  <br>
+  {{#if message }}
+    <div class="error-message">{{ message }}</div>
+  {{/if}}
 
   <br><br>
 

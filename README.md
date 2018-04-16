@@ -1,17 +1,11 @@
-![Ironhack logo](https://i.imgur.com/1QgrNNw.png)
 
 # [Ironhack](https://www.ironhack.com) [Express](https://www.npmjs.com/package/express) application generator.
 
-![NodeJS Logo](https://user-images.githubusercontent.com/970858/33016149-421633aa-cde5-11e7-9c09-5d5d670964ff.png)
-![MongoDB Logo](https://user-images.githubusercontent.com/970858/33016120-2435a6d6-cde5-11e7-874d-ef8b18e97472.png)
-[![Express Logo](https://i.cloudup.com/zfY6lL7eFa-3000x3000.png)](http://expressjs.com/)
-![Mongoose Logo](https://user-images.githubusercontent.com/970858/33016063-f66b535e-cde4-11e7-8088-5df48a048d46.png)
-
-![HandleBars Logo](https://user-images.githubusercontent.com/970858/33016171-58b9cc0c-cde5-11e7-9252-d3a8c5d349ab.png)
+![Logo](https://user-images.githubusercontent.com/23629340/36973210-4e366760-2072-11e8-90c2-54128b787a16.png)
 
 ## Introduction
 
-`iron-generator` is Ironhack's NPM package that allows students to quickly create express projects. The `Iron-generator` is strongly opinionated:
+`ironhack_generator` is Ironhack's NPM package that allows students to quickly create express projects. The `Ironhack-generator` is strongly opinionated:
 
 - Follows industry best practices
 - Predefined directory structure:
@@ -21,7 +15,7 @@
     - `views`: Project views and layouts
 - **Views Template**: [Handlebars](http://handlebarsjs.com/)
 - **CSS Engine**: [SCSS](http://sass-lang.com/) - [Node-sass-middleware]()
-- **ORM**: Mongoose
+- **ODM**: Mongoose
 - Comes prepopulated with popular, useful Express middlewares
   - **Logger**: morgan
   - **Favicon**: serve-favicon
@@ -34,10 +28,10 @@
 
 ## Installation
 
-Install `iron-generator` as a global NPM package, so you can run it from anywhere in your computer:
+Install `ironhack_generator` as a global NPM package, so you can run it from anywhere in your computer:
 
 ```sh
-$ npm install -g iron-generator
+$ npm install -g ironhack_generator
 ```
 
 ## Quick Start

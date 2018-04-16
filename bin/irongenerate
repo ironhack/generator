@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 const chalk        = require('chalk');
 const exec         = require('child_process').execSync;
 const fs           = require('fs-extra')
@@ -7,6 +6,7 @@ const mkdirp       = require('mkdirp');
 const os           = require('os');
 const path         = require('path');
 const nodePath     = path;
+const mkdirp       = require('mkdirp');
 const program      = require('commander');
 const readline     = require('readline');
 const sortedObject = require('sorted-object');
@@ -129,7 +129,7 @@ function createApplication(app_name, path) {
     private: true,
     scripts: {
       start: 'node ./bin/www',
-      dev: `DEBUG=${app_name}:* nodemon --inspect ./bin/www`
+      dev: `DEBUG=${app_name}:* nodemon ./bin/www`
     },
     dependencies: {
       'body-parser':   '~1.18.2',
@@ -205,9 +205,12 @@ hbs.registerHelper('ifUndefined', (value, options) => {
   }
 });
   `);
-
+  } else {
+    app = app.replace('{auth_requires}', ``);
+    app = app.replace('{auth}', ``);
+    app = app.replace('{auth_routes}', ``);
+    app = app.replace('{auth_hbs_helper}', ``);
   }
-
   // CSS Engine support
   switch (program.css || 'scss') {
     case 'plain':
@@ -273,6 +276,9 @@ app.use(require('node-sass-middleware')({
   // console.log();
   // console.log('   Install dependencies:');
   // console.log('   $ cd %s && npm install', path);
+  console.log();
+  console.log('   Start your app in development mode:');
+  console.log('   $ SET DEBUG=%s:* & npm run dev', app_name);
   console.log();
   console.log('   Start your app in development mode:');
   console.log('   $ SET DEBUG=%s:* & npm run dev', app_name);
