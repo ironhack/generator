@@ -6,7 +6,6 @@ const mkdirp       = require('mkdirp');
 const os           = require('os');
 const path         = require('path');
 const nodePath     = path;
-const mkdirp       = require('mkdirp');
 const program      = require('commander');
 const readline     = require('readline');
 const sortedObject = require('sorted-object');
