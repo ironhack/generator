@@ -128,7 +128,7 @@ function createApplication(app_name, path) {
     version: '0.0.0',
     private: true,
     scripts: {
-      start: 'nodemon ./bin/www',
+      start: 'node ./bin/www',
       dev: `DEBUG=${app_name}:* nodemon --inspect ./bin/www`
     },
     dependencies: {
