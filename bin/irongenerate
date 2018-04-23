@@ -258,6 +258,7 @@ app.use(require('node-sass-middleware')({
   copy_template('hbs/index.hbs',         `${path}/views/index.hbs`);
   copy_template('hbs/layout.hbs',        `${path}/views/layout.hbs`);
   copy_template('hbs/error.hbs',         `${path}/views/error.hbs`);
+  copy_template('hbs/not-found.hbs',     `${path}/views/not-found.hbs`);
   copy_template('images/favicon.ico',    `${path}/public/images/favicon.ico`);
   copy_template('javascripts/script.js', `${path}/public/javascripts/script.js`);
 
