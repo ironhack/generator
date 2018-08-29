@@ -90,6 +90,7 @@ This generator can also be further configured with the following command line fl
         --version        output the version number
     -c, --css <engine>   add stylesheet <engine> support (plain|less|sass|scss) (defaults to scss)
     -f, --force          force on non-empty directory
+        --git            initialise a Git project
 
 ## License
 
