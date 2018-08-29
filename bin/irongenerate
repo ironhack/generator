@@ -131,6 +131,16 @@ function createApplication(app_name, path) {
       'dev': `DEBUG=${app_name}:* nodemon ./bin/www`,
       'dev-windows': `nodemon ./bin/www`,
     },
+    dependencies: {
+      'body-parser':   '^1.18.3',
+      'cookie-parser': '^1.4.3',
+      'express':       '^4.16.3',
+      'hbs':           '^4.0.1',
+      'mongoose':      '^5.2.10',
+      'morgan':        '^1.9.0',
+      'serve-favicon': '^2.5.0',
+      'dotenv':        '^6.0.0'
+    },
     devDependencies: {
       'nodemon':'^1.12.1'
     }
@@ -138,13 +148,13 @@ function createApplication(app_name, path) {
 
   // Add Authentication Dependencies
   if (program.auth) {
-  //   pkg.dependencies['bcrypt'] = "^3.0.0";
-  //   pkg.dependencies['connect-ensure-login'] = "^0.1.1";
-  //   pkg.dependencies['connect-flash'] = "^0.1.1";
-  //   pkg.dependencies['connect-mongo'] = "^1.3.2";
-  //   pkg.dependencies['express-session'] = "^1.15.6";
-  //   pkg.dependencies['passport-local'] = "^1.0.0";
-  //   pkg.dependencies['passport'] = "^0.4.0";
+    pkg.dependencies['bcrypt'] = "^3.0.0";
+    pkg.dependencies['connect-ensure-login'] = "^0.1.1";
+    pkg.dependencies['connect-flash'] = "^0.1.1";
+    pkg.dependencies['connect-mongo'] = "^2.0.1";
+    pkg.dependencies['express-session'] = "^1.15.6";
+    pkg.dependencies['passport-local'] = "^1.0.0";
+    pkg.dependencies['passport'] = "^0.4.0";
 
     app = app.replace('{auth_requires}', `
 const session    = require("express-session");
@@ -210,11 +220,11 @@ hbs.registerHelper('ifUndefined', (value, options) => {
     case 'less':
       copy_template('css/style.less', `${path}/public/stylesheets/style.less`);
       expressCss = "app.use(require('less-middleware')(path.join(__dirname, 'public')));";
-      // pkg.dependencies['less-middleware'] = '~2.2.1';
+      pkg.dependencies['less-middleware'] = '~2.2.1';
       break;
     case 'sass':
       copy_template('css/style.sass', `${path}/public/stylesheets/style.sass`);
-      // pkg.dependencies['node-sass-middleware'] = '0.11.0';
+      pkg.dependencies['node-sass-middleware'] = '^0.11.0';
       expressCss = `
 app.use(require('node-sass-middleware')({
   src:  path.join(__dirname, 'public'),
@@ -226,7 +236,7 @@ app.use(require('node-sass-middleware')({
       break;
     case 'scss':
       copy_template('css/style.scss', `${path}/public/stylesheets/style.scss`);
-      // pkg.dependencies['node-sass-middleware'] = '0.11.0';
+      pkg.dependencies['node-sass-middleware'] = '^0.11.0';
       expressCss = `
 app.use(require('node-sass-middleware')({
   src:  path.join(__dirname, 'public'),
@@ -240,7 +250,7 @@ app.use(require('node-sass-middleware')({
   app = app.replace('{app_name}',   app_name);
 
   // sort dependencies like npm(1)
-  // pkg.dependencies = sortedObject(pkg.dependencies);
+  pkg.dependencies = sortedObject(pkg.dependencies);
 
   copy_template('.env',                  `${path}/.env`);
   copy_template('js/gitignore',          `${path}/.gitignore`);
@@ -266,22 +276,6 @@ app.use(require('node-sass-middleware')({
   console.log('\n > Installing NPM packages. Please wait ⚡️\n');
 
   exec('npm install', { stdio: 'inherit' });
-
-  exec('npm install --save body-parser cookie-parser express hbs mongoose morgan serve-favicon dotenv', { stdio: 'inherit' });
-
-  if (program.auth) {
-    exec('npm install --save bcrypt connect-ensure-login connect-flash connect-mongo express-session passport-local passport', { stdio: 'inherit' });
-  }
-
-  switch (program.css || 'scss') {
-    case 'less':
-      exec('npm install --save less-middleware', { stdio: 'inherit' });
-      break;
-    case 'sass':
-    case 'scss':
-      exec('npm install --save node-sass-middleware', { stdio: 'inherit' });
-      break;
-  }
 
   // console.log();
   // console.log('   Install dependencies:');

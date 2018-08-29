@@ -11,7 +11,7 @@ const path         = require('path');
 {auth_requires}
 
 mongoose
-  .connect('mongodb://localhost/temp-with-no-version', {useNewUrlParser: true})
+  .connect('mongodb://localhost/{app_name}', {useNewUrlParser: true})
   .then(x => {
     console.log(`Connected to Mongo! Database name: "${x.connections[0].name}"`)
   })
