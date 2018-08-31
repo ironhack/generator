@@ -190,6 +190,8 @@ app.use('/auth', authRoutes);
     copy_template('passport/localStrategy.js',     `${path}/passport/localStrategy.js`)
     copy_template('passport/serializers.js',       `${path}/passport/serializers.js`)
 
+    copy_template('passport/views/hbs/layout.hbs',  `${path}/views/layout.hbs`);
+
     createDir(`${path}/views/auth`);
     copy_template('passport/views/hbs/login.hbs',  `${path}/views/auth/login.hbs`);
     copy_template('passport/views/hbs/signup.hbs', `${path}/views/auth/signup.hbs`);
@@ -211,7 +213,9 @@ hbs.registerHelper('ifUndefined', (value, options) => {
     app = app.replace('{auth}', ``);
     app = app.replace('{auth_routes}', ``);
     app = app.replace('{auth_hbs_helper}', ``);
-  }
+
+    copy_template('hbs/layout.hbs', `${path}/views/layout.hbs`);
+}
   // CSS Engine support
   switch (program.css || 'scss') {
     case 'plain':
@@ -258,7 +262,6 @@ app.use(require('node-sass-middleware')({
   copy_template('js/www',                `${path}/bin/www`);
   copy_template('js/routes/index.js',    `${path}/routes/index.js`)
   copy_template('hbs/index.hbs',         `${path}/views/index.hbs`);
-  copy_template('hbs/layout.hbs',        `${path}/views/layout.hbs`);
   copy_template('hbs/error.hbs',         `${path}/views/error.hbs`);
   copy_template('hbs/not-found.hbs',     `${path}/views/not-found.hbs`);
   copy_template('images/favicon.ico',    `${path}/public/images/favicon.ico`);
