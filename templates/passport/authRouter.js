@@ -45,13 +45,13 @@ router.post("/signup", (req, res, next) => {
       password: hashPass
     });
 
-    newUser.save((err) => {
-      if (err) {
-        res.render("auth/signup", { message: "Something went wrong" });
-      } else {
-        res.redirect("/");
-      }
-    });
+    newUser.save()
+    .then(() => {
+      res.redirect("/");
+    })
+    .catch(err => {
+      res.render("auth/signup", { message: "Something went wrong" });
+    })
   });
 });
 

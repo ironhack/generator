@@ -184,6 +184,12 @@ app.use('/auth', authRoutes);
     // Copy entire passport config with LocalStrategy
     copy_template('passport/models/User.js',       `${path}/models/User.js`)
     copy_template('passport/authRouter.js',        `${path}/routes/auth.js`)
+    copy_template('passport/bin/seeds.js',         `${path}/bin/seeds.js`)
+
+    // bin/seeds.js
+    let seeds = loadTemplate('passport/bin/seeds.js');
+    seeds = seeds.replace('{app_name}', app_name);
+    createFile(`${path}/bin/seeds.js`, seeds);
 
     createDir(`${path}/passport`);
     copy_template('passport/index.js',             `${path}/passport/index.js`)
