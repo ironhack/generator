@@ -120,6 +120,7 @@ function createApplication(app_name, path) {
   // Add debugger configuration for Visual Studio Code
   createDir(`${path}/.vscode`);
   copy_template('vscode/launch.json', `${path}/.vscode/launch.json`)
+  copy_template('vscode/settings.json', `${path}/.vscode/settings.json`)
 
   // package.json
   var pkg = {
@@ -127,18 +128,19 @@ function createApplication(app_name, path) {
     version: '0.0.0',
     private: true,
     scripts: {
-      start: 'node ./bin/www',
-      dev: `DEBUG=${app_name}:* nodemon ./bin/www`
+      'start': 'node ./bin/www',
+      'dev': `DEBUG=${app_name}:* nodemon ./bin/www`,
+      'dev-windows': `nodemon ./bin/www`,
     },
     dependencies: {
-      'body-parser':   '~1.18.2',
-      'cookie-parser': '~1.4.3',
-      'express':       '~4.16.0',
-      'hbs':           '~4.0.1',
-      'mongoose':      '~4.13.4',
-      'morgan':        '~1.9.0',
-      'serve-favicon': '~2.4.5',
-      'dotenv':        '~4.0.0'
+      'body-parser':   '^1.18.3',
+      'cookie-parser': '^1.4.3',
+      'express':       '^4.16.3',
+      'hbs':           '^4.0.1',
+      'mongoose':      '^5.2.10',
+      'morgan':        '^1.9.0',
+      'serve-favicon': '^2.5.0',
+      'dotenv':        '^6.0.0'
     },
     devDependencies: {
       'nodemon':'^1.12.1'
@@ -147,10 +149,10 @@ function createApplication(app_name, path) {
 
   // Add Authentication Dependencies
   if (program.auth) {
-    pkg.dependencies['bcrypt'] = "^1.0.3";
+    pkg.dependencies['bcrypt'] = "^3.0.0";
     pkg.dependencies['connect-ensure-login'] = "^0.1.1";
     pkg.dependencies['connect-flash'] = "^0.1.1";
-    pkg.dependencies['connect-mongo'] = "^1.3.2";
+    pkg.dependencies['connect-mongo'] = "^2.0.1";
     pkg.dependencies['express-session'] = "^1.15.6";
     pkg.dependencies['passport-local'] = "^1.0.0";
     pkg.dependencies['passport'] = "^0.4.0";
@@ -182,11 +184,19 @@ app.use('/auth', authRoutes);
     // Copy entire passport config with LocalStrategy
     copy_template('passport/models/User.js',       `${path}/models/User.js`)
     copy_template('passport/authRouter.js',        `${path}/routes/auth.js`)
+    copy_template('passport/bin/seeds.js',         `${path}/bin/seeds.js`)
+
+    // bin/seeds.js
+    let seeds = loadTemplate('passport/bin/seeds.js');
+    seeds = seeds.replace('{app_name}', app_name);
+    createFile(`${path}/bin/seeds.js`, seeds);
 
     createDir(`${path}/passport`);
     copy_template('passport/index.js',             `${path}/passport/index.js`)
     copy_template('passport/localStrategy.js',     `${path}/passport/localStrategy.js`)
     copy_template('passport/serializers.js',       `${path}/passport/serializers.js`)
+
+    copy_template('passport/views/hbs/layout.hbs',  `${path}/views/layout.hbs`);
 
     createDir(`${path}/views/auth`);
     copy_template('passport/views/hbs/login.hbs',  `${path}/views/auth/login.hbs`);
@@ -209,7 +219,9 @@ hbs.registerHelper('ifUndefined', (value, options) => {
     app = app.replace('{auth}', ``);
     app = app.replace('{auth_routes}', ``);
     app = app.replace('{auth_hbs_helper}', ``);
-  }
+
+    copy_template('hbs/layout.hbs', `${path}/views/layout.hbs`);
+}
   // CSS Engine support
   switch (program.css || 'scss') {
     case 'plain':
@@ -223,7 +235,7 @@ hbs.registerHelper('ifUndefined', (value, options) => {
       break;
     case 'sass':
       copy_template('css/style.sass', `${path}/public/stylesheets/style.sass`);
-      pkg.dependencies['node-sass-middleware'] = '0.11.0';
+      pkg.dependencies['node-sass-middleware'] = '^0.11.0';
       expressCss = `
 app.use(require('node-sass-middleware')({
   src:  path.join(__dirname, 'public'),
@@ -235,7 +247,7 @@ app.use(require('node-sass-middleware')({
       break;
     case 'scss':
       copy_template('css/style.scss', `${path}/public/stylesheets/style.scss`);
-      pkg.dependencies['node-sass-middleware'] = '0.11.0';
+      pkg.dependencies['node-sass-middleware'] = '^0.11.0';
       expressCss = `
 app.use(require('node-sass-middleware')({
   src:  path.join(__dirname, 'public'),
@@ -256,7 +268,6 @@ app.use(require('node-sass-middleware')({
   copy_template('js/www',                `${path}/bin/www`);
   copy_template('js/routes/index.js',    `${path}/routes/index.js`)
   copy_template('hbs/index.hbs',         `${path}/views/index.hbs`);
-  copy_template('hbs/layout.hbs',        `${path}/views/layout.hbs`);
   copy_template('hbs/error.hbs',         `${path}/views/error.hbs`);
   copy_template('hbs/not-found.hbs',     `${path}/views/not-found.hbs`);
   copy_template('images/favicon.ico',    `${path}/public/images/favicon.ico`);
@@ -267,18 +278,18 @@ app.use(require('node-sass-middleware')({
 
   process.chdir(path);
 
-  console.log('\n > Creating a git repository and commiting all your files\n');
-  exec('git init && git add . && git commit -m"initial commit"', { stdio: 'inherit' });
+  if (program.git) {
+    console.log('\n > Creating a git repository and commiting all your files\n');
+    exec('git init && git add . && git commit -m "initial commit"', { stdio: 'inherit' });
+  }
 
   console.log('\n > Installing NPM packages. Please wait ⚡️\n');
+
   exec('npm install', { stdio: 'inherit' });
 
   // console.log();
   // console.log('   Install dependencies:');
   // console.log('   $ cd %s && npm install', path);
-  console.log();
-  console.log('   Start your app in development mode:');
-  console.log('   $ SET DEBUG=%s:* & npm run dev', app_name);
   console.log();
   console.log('   Start your app in development mode:');
   console.log('   $ SET DEBUG=%s:* & npm run dev', app_name);

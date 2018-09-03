@@ -10,12 +10,12 @@ const logger       = require('morgan');
 const path         = require('path');
 {auth_requires}
 
-mongoose.Promise = Promise;
 mongoose
-  .connect('mongodb://localhost/{app_name}', {useMongoClient: true})
-  .then(() => {
-    console.log('Connected to Mongo!')
-  }).catch(err => {
+  .connect('mongodb://localhost/{app_name}', {useNewUrlParser: true})
+  .then(x => {
+    console.log(`Connected to Mongo! Database name: "${x.connections[0].name}"`)
+  })
+  .catch(err => {
     console.error('Error connecting to mongo', err)
   });
 
